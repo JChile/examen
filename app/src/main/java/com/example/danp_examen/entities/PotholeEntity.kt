@@ -17,9 +17,6 @@ data class PotholeEntity(
     @ColumnInfo(name = "PotSev")
     val potSev: Int,
 
-    @ColumnInfo(name = "PotDat")
-    val potDate: Date,
-
     @ColumnInfo(name = "PotDes")
     val potDesc: String,
 )

@@ -29,6 +29,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import com.example.danp_examen.DataStoreClass
 import com.example.danp_examen.R
 import com.example.danp_examen.Screens
 import com.example.danp_examen.viewmodel.UserViewModel
@@ -45,6 +46,7 @@ fun LoginPage(naveController: NavController) {
     var password by remember { mutableStateOf("") }
     var passView by remember { mutableStateOf(false) }
     var showError by remember { mutableStateOf(false) }
+    val dataStore = DataStoreClass(LocalContext.current)
 
     mUserViewModel = ViewModelProvider(LocalContext.current as ViewModelStoreOwner).get(UserViewModel::class.java)
 
@@ -168,8 +170,10 @@ fun LoginPage(naveController: NavController) {
                     mUserViewModel.viewModelScope.launch {
                         val credentialsValid = mUserViewModel.checkUser(email, password)
                         if (credentialsValid) {
-                            val id = mUserViewModel.getUserId(email, password)
-                            naveController.navigate("${Screens.List.route}/${id}")
+                            val id = mUserViewModel.getUserId(email, password)?: -1
+                            naveController.navigate(Screens.List.route)
+                            dataStore.saveId(id)
+
                         } else{
                             showError = true
                         }

@@ -2,10 +2,7 @@ package com.example.danp_examen.composables
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ExitToApp
@@ -16,19 +13,31 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.navigation.NavController
+import com.example.danp_examen.DataStoreClass
 import com.example.danp_examen.R
+import com.example.danp_examen.Screens
+import com.example.danp_examen.entities.PotholeEntity
 import com.example.danp_examen.ui.theme.DarkOrange
 import com.example.danp_examen.ui.theme.LGray
+import com.example.danp_examen.viewmodel.PotholeViewModel
 import com.example.danp_examen.viewmodel.UserViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Composable
-fun ListPage(naveController: NavController, id: Int){
+fun ListPage(naveController: NavController){
     lateinit var mUserViewModel: UserViewModel
     mUserViewModel = ViewModelProvider(LocalContext.current as ViewModelStoreOwner).get(UserViewModel::class.java)
+
+    val dataStore = DataStoreClass(LocalContext.current)
+    val savedId = dataStore.getId.collectAsState(initial = -1)
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -45,8 +54,13 @@ fun ListPage(naveController: NavController, id: Int){
         var userName by remember { mutableStateOf("") }
 
         LaunchedEffect(Unit) {
-            userName = mUserViewModel.getUserName(id) ?: ""
+            userName = mUserViewModel.getUserName(savedId.value!!) ?: ""
         }
+
+        lateinit var mPotholeViewModel: PotholeViewModel
+        mPotholeViewModel = ViewModelProvider(LocalContext.current as ViewModelStoreOwner).get(PotholeViewModel::class.java)
+
+
 
         TopAppBar(
             modifier = Modifier
@@ -56,7 +70,12 @@ fun ListPage(naveController: NavController, id: Int){
 
             navigationIcon = {
                 IconButton(
-                    onClick = {  },
+                    onClick = {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            dataStore.clearId()
+                        }
+                        naveController.navigate(Screens.Login.route)
+                    },
                     content = {
                         Icon(
                             imageVector = Icons.Default.ExitToApp,
@@ -69,9 +88,10 @@ fun ListPage(naveController: NavController, id: Int){
             title = {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
+                    horizontalArrangement = Arrangement.End,
                     modifier = Modifier
                         .fillMaxWidth()
+                        .padding(end = 10.dp)
                 ){
                     Text(
                         text = userName,
@@ -85,5 +105,24 @@ fun ListPage(naveController: NavController, id: Int){
                 }
             }
         )
+
+        Column(
+            modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 60.dp),
+            verticalArrangement = Arrangement.Bottom,
+            horizontalAlignment = Alignment.CenterHorizontally) {
+            Button(onClick = {
+                mPotholeViewModel.addPothole(PotholeEntity(potUser = savedId.value!!, potSev = 2, potDesc = "des"))
+            }) {
+                Text(
+                    text = "INGRESAR",
+                    fontSize = 15.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        }
+
     }
 }
